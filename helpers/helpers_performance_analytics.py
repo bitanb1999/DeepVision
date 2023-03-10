@@ -44,7 +44,11 @@ def performance_plotter(history, filename, best_val_mae):
     # Subplot 2
     axarr[1].plot(epochs, mae, 'b--', label='Training MAE')
     axarr[1].plot(epochs, val_mae, 'g', label='Validation MAE')
-    axarr[1].text(2, (best_val_mae+.03), ('Best MAE on Val Set = '+str(round(best_val_mae,5))))
+    axarr[1].text(
+        2,
+        best_val_mae + 0.03,
+        f'Best MAE on Val Set = {str(round(best_val_mae, 5))}',
+    )
     # axarr[1].set_xlim([burnin-1, (len(loss)+1)])
     axarr[1].set_xlabel('Epochs')
     axarr[1].set_ylabel('MAE')
@@ -70,15 +74,12 @@ def train_models(model_name, batch_size, optimizer, learning_rate,
         network = model_inception_V3()
     else: print('Did you mistype the model you wanted to chose?')
     # writing output
-    specs_name = (model_name+'_'+str(batch_size)+'_'+optimizer+'_'+str(learning_rate))
-    best_model_path = ("best_models/"+which_experiment+'/'+specs_name+"_weights.h5")
-    plot_path = ("best_models/"+which_experiment+'/'+specs_name+"_figure.png")
+    specs_name = f'{model_name}_{str(batch_size)}_{optimizer}_{str(learning_rate)}'
+    best_model_path = f"best_models/{which_experiment}/{specs_name}_weights.h5"
+    plot_path = f"best_models/{which_experiment}/{specs_name}_figure.png"
     # set optimizer
     if optimizer == 'adam':
-        if learning_rate == 'default':
-            optimizer = Adam()
-        else:
-            optimizer = Adam(lr=learning_rate)
+        optimizer = Adam() if learning_rate == 'default' else Adam(lr=learning_rate)
     if optimizer == 'rmsprop':
         if learning_rate == 'default':
             optimizer = RMSprop()
@@ -122,7 +123,7 @@ def train_models(model_name, batch_size, optimizer, learning_rate,
     ## Make a visualizer for training performance
     performance_plotter(history, plot_path, val_mae)
     # save results
-    val_performance_path = ('best_models/'+which_experiment+'/'+str(val_mae)+'_'+specs_name+'_best_val_performance.csv')
+    val_performance_path = f'best_models/{which_experiment}/{str(val_mae)}_{specs_name}_best_val_performance.csv'
     with open(val_performance_path, 'w',encoding='utf-8') as f:
         writer = csv.writer(f)
         writer.writerows(zip([val_mse], [val_mae]))

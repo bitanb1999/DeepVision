@@ -24,12 +24,14 @@ import time
 def read_stllt_images_and_names(images_path):
     ''' Reads in satellite images from folder. Requires rasterio to
     take care of images with more than just RGB channels'''
-    n = glob.glob(images_path+'/'+'*.tif')
+    n = glob.glob(f'{images_path}/*.tif')
     stllt_images = []
     stllt_images_names = []
     for fname in n:
         # creates polling station id from file name
-        stllt_images_names.append(fname.replace((images_path+'/'), '').replace('.tif', ''))
+        stllt_images_names.append(
+            fname.replace(f'{images_path}/', '').replace('.tif', '')
+        )
         # gets image
         image_constr = rasterio.open(fname)
         # Reading as array
@@ -69,13 +71,13 @@ def join_sat_imgs_ps_data_at_stream_level(image_ps_id, image_data, ps_id, str_id
     ps_id_at_str_level = []
     turnout_at_str_level = []
     str_id_at_str_level = []
-    for i in range(len(unique_str_id)):
+    for item in unique_str_id:
         # polling_station
-        ps_id_at_str_level.append(str_data_dict[unique_str_id[i]][0])
+        ps_id_at_str_level.append(str_data_dict[item][0])
         # Polling Stream
-        str_id_at_str_level.append(str_data_dict[unique_str_id[i]][1])
+        str_id_at_str_level.append(str_data_dict[item][1])
         # turnout
-        turnout_at_str_level.append(str_data_dict[unique_str_id[i]][2])
+        turnout_at_str_level.append(str_data_dict[item][2])
     # 2.2 Select image data on the basis of unique IDs for streams and correct for the missing satellite images
     images_at_str_level_wona = []
     mask = [True]*len(unique_str_id)
@@ -123,18 +125,20 @@ def make_train_test_for_observed_streams(
     # randomize the order
     new_order = random.sample(range(observed_ps_set_size), observed_ps_set_size)
     # randomize sat images
-    train_images = observed_ps_images[new_order[0:train_set_size],:,:,:].reshape(train_set_size, 96, 96, 7)
+    train_images = observed_ps_images[
+        new_order[:train_set_size], :, :, :
+    ].reshape(train_set_size, 96, 96, 7)
     val_images = observed_ps_images[new_order[train_set_size:(train_set_size+testval_set_size)],:,:,:].reshape((testval_set_size, 96, 96, 7))
     test_images = observed_ps_images[new_order[(train_set_size+testval_set_size):observed_ps_set_size],:,:,:].reshape((testval_set_size, 96, 96, 7))
     # randomize labels
-    train_labels = [observed_ps_labels[i] for i in new_order[0:train_set_size]]
+    train_labels = [observed_ps_labels[i] for i in new_order[:train_set_size]]
     val_labels = [observed_ps_labels[i] for i in new_order[train_set_size:(train_set_size+testval_set_size)]]
     test_labels = [observed_ps_labels[i] for i in new_order[(train_set_size+testval_set_size):observed_ps_set_size]]
     # write the train_val_test split as json for eventual later use
-    train_str_id = [observed_str_id_values[i] for i in new_order[0:train_set_size]]
+    train_str_id = [observed_str_id_values[i] for i in new_order[:train_set_size]]
     val_str_id = [observed_str_id_values[i] for i in new_order[train_set_size:(train_set_size+testval_set_size)]]
     test_str_id = [observed_str_id_values[i] for i in new_order[(train_set_size+testval_set_size):observed_ps_set_size]]
-    with open('best_models/'+which_experiment+'/train_val_test_stream_ids.json', 'w', encoding='utf-8') as f:
+    with open(f'best_models/{which_experiment}/train_val_test_stream_ids.json', 'w', encoding='utf-8') as f:
         json.dump([train_str_id, val_str_id, test_str_id], f, ensure_ascii=False, indent=4)
     return(train_images, val_images, test_images, train_labels, val_labels, test_labels)
 
@@ -170,18 +174,22 @@ def make_train_test_for_unobserved_streams(
     # randomize the order
     new_order = random.sample(range(unobserved_ps_set_size), unobserved_ps_set_size)
     # randomize sat images
-    train_images = unobserved_ps_images[new_order[0:train_set_size],:,:,:].reshape(train_set_size, 96, 96, 7)
+    train_images = unobserved_ps_images[
+        new_order[:train_set_size], :, :, :
+    ].reshape(train_set_size, 96, 96, 7)
     val_images = unobserved_ps_images[new_order[train_set_size:(train_set_size+testval_set_size)],:,:,:].reshape((testval_set_size, 96, 96, 7))
     test_images = unobserved_ps_images[new_order[(train_set_size+testval_set_size):unobserved_ps_set_size],:,:,:].reshape((testval_set_size, 96, 96, 7))
     # randomize labels
-    train_labels = [unobserved_ps_labels[i] for i in new_order[0:train_set_size]]
+    train_labels = [unobserved_ps_labels[i] for i in new_order[:train_set_size]]
     val_labels = [unobserved_ps_labels[i] for i in new_order[train_set_size:(train_set_size+testval_set_size)]]
     test_labels = [unobserved_ps_labels[i] for i in new_order[(train_set_size+testval_set_size):unobserved_ps_set_size]]
     # write the train_val_test split as json for eventual later use
-    train_str_id = [unobserved_str_id_values[i] for i in new_order[0:train_set_size]]
+    train_str_id = [
+        unobserved_str_id_values[i] for i in new_order[:train_set_size]
+    ]
     val_str_id = [unobserved_str_id_values[i] for i in new_order[train_set_size:(train_set_size+testval_set_size)]]
     test_str_id = [unobserved_str_id_values[i] for i in new_order[(train_set_size+testval_set_size):unobserved_ps_set_size]]
-    with open('best_models/'+which_experiment+'/train_val_test_stream_ids.json', 'w', encoding='utf-8') as f:
+    with open(f'best_models/{which_experiment}/train_val_test_stream_ids.json', 'w', encoding='utf-8') as f:
         json.dump([train_str_id, val_str_id, test_str_id], f, ensure_ascii=False, indent=4)
     return(train_images, val_images, test_images, train_labels, val_labels, test_labels)
 
